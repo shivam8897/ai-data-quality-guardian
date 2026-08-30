@@ -1,0 +1,35 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.venv*/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Embedded local Postgres data (used for dev/testing without Docker)
+backend/.pgdata/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+
+# Uploaded files
+backend/uploads/
+
+# Airflow
+airflow/logs/
+airflow/airflow.db
+*.pid
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code local state
+.claude/
