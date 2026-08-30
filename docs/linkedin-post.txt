@@ -1,0 +1,14 @@
+I built a small tool over the last few days: an AI-powered data quality checker.
+
+The idea is simple. You upload a CSV (or point it at a database table), and it:
+- profiles every column — nulls, duplicates, outliers
+- flags anomalies using stats + a bit of ML
+- asks Claude to explain each issue in plain English, with a suggested fix
+- shows it all on a dashboard with a health score
+
+The stack is FastAPI + PostgreSQL on the backend, React + Recharts on the frontend, Airflow for scheduled checks. It was a good excuse to actually finish something end to end instead of leaving it half-built, which is usually where my side projects die.
+
+Still rough around the edges, but it works. Code's here if you want to look:
+https://github.com/shivam8897/ai-data-quality-guardian
+
+Would love feedback if you try it.
