@@ -1,13 +1,46 @@
 # 🛡️ AI Data Quality Guardian
 
-An AI-powered data quality monitoring platform. Upload any CSV and the system will:
+An AI-powered data quality monitoring platform. Point it at a CSV or a live
+database table and it will profile the data, flag anomalies with statistical
+and ML methods, ask Claude to explain each one in plain English with a
+concrete fix, and lay it all out on a live dashboard.
 
-1. Profile the data (nulls, duplicates, schema drift, outliers)
-2. Detect anomalies using statistical + ML methods (Z-score, Isolation Forest)
-3. Send anomaly context to Claude → get a plain-English explanation, root cause,
-   business impact, and a concrete fix
-4. Store results in PostgreSQL
-5. Show everything on a React dashboard (health score, anomaly table, column quality)
+![Dashboard screenshot](docs/dashboard.png)
+
+## What it does
+
+1. **Profiles the data** — nulls, duplicates, distinct counts, min/max/mean/std,
+   per-column quality scores
+2. **Detects anomalies** — null spikes, duplicate rows, statistical outliers
+   (Z-score), ML-based outliers (Isolation Forest), and schema drift between runs
+3. **Explains anomalies with AI** — sends each anomaly's context to Claude and
+   gets back a plain-English explanation, root cause, business impact, and a
+   concrete fix
+4. **Stores everything in PostgreSQL** — every run, anomaly, and column profile
+   is persisted so you can track health over time
+5. **Renders a live dashboard** — health score, anomaly table, column quality,
+   and a health-score trend chart (React + Recharts + Tailwind)
+6. **Runs on a schedule** — an Airflow DAG can trigger checks daily and post an
+   alert if the health score drops below threshold
+
+## Two ways to feed it data
+
+- **Upload a CSV** — drag and drop, or `POST /api/upload`
+- **Connect a database table** — point it at any SQLAlchemy-compatible
+  connection string and table name, or `POST /api/connect`. The connection
+  string is used only to run the check and is never persisted.
+
+## Tech stack
+
+| Layer               | Tech                                              |
+|---------------------|----------------------------------------------------|
+| Backend API         | Python, FastAPI                                    |
+| Profiling/Detection | pandas, scipy, scikit-learn                        |
+| AI explanations     | Anthropic Claude API                               |
+| Database            | PostgreSQL (SQLAlchemy)                            |
+| Scheduling          | Apache Airflow                                     |
+| Frontend            | React + Vite + Tailwind CSS + Recharts             |
+| Infra               | Docker + Docker Compose                            |
 
 ## Prerequisites
 - Docker + Docker Compose, **or** Python 3.11+ and Node 20+ for a manual run
@@ -58,6 +91,10 @@ npm run dev
 # Upload any CSV file and watch the magic happen
 ```
 
+> No Docker and no local Postgres? The backend just needs a `DATABASE_URL`
+> pointing at any reachable Postgres instance — an embedded one (e.g. the
+> `pgserver` PyPI package) works fine for local development.
+
 ## Connecting a database table instead of a CSV
 
 Use the "Connect DB" button in the dashboard, or call the API directly:
@@ -87,13 +124,14 @@ pytest tests/ -v
 ```
 ai_data_quality/
 ├── backend/
-│   ├── main.py                 FastAPI app + /api/upload, /api/runs
+│   ├── main.py                 FastAPI app + /api/upload, /api/connect, /api/runs
 │   ├── database.py             DB connection + migration runner
 │   ├── models.py                SQLAlchemy models
 │   ├── profiler/                CSV + SQL table profiling
 │   ├── anomaly/                 Anomaly detection + health scoring
 │   ├── ai_engine/                Claude prompt building + API calls
-│   └── airflow/dags/            Scheduled quality-check DAG
+│   ├── airflow/dags/            Scheduled quality-check DAG
+│   └── tests/                    pytest suite (profiler, anomalies, scoring)
 ├── frontend/
 │   └── src/components/          Dashboard UI (Recharts + Tailwind)
 ├── migrations/                  Raw SQL schema
